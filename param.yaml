@@ -1,0 +1,224 @@
+#################################################################################
+#                               *** param.yaml ***                              #
+#################################################################################
+
+
+
+
+#################################################################################
+#                                       DATA                                    #
+#################################################################################
+data:
+    path: 
+        datasetPath: /home/jovyan/playGround/ResearchDevelopment/mfg-crt/ # path for the dataset
+        pretrainedPath: /home/jovyan/playGround/ResearchDevelopment/mfg-crt/ # path for the pretrained weight
+        
+
+
+    datasetComponent:
+
+        Thermal_SR_train:
+            dataConfig: Thermal_dataset
+            out:
+                LR_X16:
+                    type: Image
+                    classParameter:
+                        mode:
+                            - train
+                        class:
+                            - input_THER_LR_bicubic_x16 # original
+                EO: 
+                    type: Image
+                    classParameter:
+                        mode:
+                            - train
+                        class:
+                            - VIS_HR
+                GT: 
+                    type: Image
+                    classParameter:
+                        mode:
+                            - train
+                        class:
+                            - output_gt_THER_HR
+
+
+        Thermal_SR_validation:
+            dataConfig: Thermal_dataset
+            out:
+                LR_X16:
+                    type: Image
+                    classParameter:
+                        mode:
+                            - validation
+                        class:
+                            - input_THER_LR_bicubic_x16 # original
+                EO: 
+                    type: Image
+                    classParameter:
+                        mode:
+                            - validation
+                        class:
+                            - VIS_HR
+                GT: 
+                    type: Image
+                    classParameter:
+                        mode:
+                            - validation
+                        class:
+                            - output_gt_THER_HR
+
+
+        Thermal_SR_test:
+            dataConfig: Thermal_dataset
+            out:
+                LR_X16:
+                    type: Image
+                    classParameter:
+                        mode:
+                            - test
+                        class:
+                            - input_THER_LR_bicubic_x16 # original
+                EO_X16: 
+                    type: Image
+                    classParameter:
+                        mode:
+                            - test
+                        class:
+                            - VIS_HR_x16
+
+
+
+    dataLoader:
+
+        train_gtisr:
+            datasetComponent: # Must be list
+                - Thermal_SR_train
+            batchSize: 4
+            type: float
+            range: 0~1
+            isEval: False
+            caching: False
+            outOrder: 
+                - LR_X16
+                - EO
+                - GT
+            augmentation:
+                - toGrayscale()
+                - randomTranslate(labelIndex=0, roll=True):0.7
+                - resize(scaleFactor=0.5, interpolation=lanczos, applyIndices=[1], labelIndex=1)
+                - random90Rotate(deg=[0, 2])
+                - horizontalFlip()
+                - verticalFlip()
+                - toTensor()                
+                # - toGrayscale(applyKeys=[LR_X16, GT])
+                # - randomTranslate(labelKey=LR_X16, roll=True):0.7
+                # - resize(scaleFactor=0.5, interpolation=lanczos, applyKeys=[EO], labelKey=EO)
+                # - random90Rotate(deg=[0, 2])
+                # - horizontalFlip()
+                # - verticalFlip()
+                # - toTensor()
+
+
+        validation_gtisr:
+            datasetComponent: # Must be list
+                - Thermal_SR_validation
+            batchSize: 1
+            type: float
+            range: 0~1
+            isEval: True
+            caching: False
+            outOrder: 
+                - LR_X16
+                - EO
+                - GT
+
+            augmentation:
+                - toGrayscale()
+                - resize(scaleFactor=0.5, interpolation=lanczos, applyIndices=[1], labelIndex=1)
+                - toTensor()
+                # - toGrayscale(applyKeys=[LR_X16, GT])
+                # - resize(scaleFactor=0.5, interpolation=lanczos, applyKeys=[EO], labelKey=EO)
+                # - toTensor()
+
+
+        inference_gtisr:
+            datasetComponent: # Must be list
+                - Thermal_SR_test
+            batchSize: 1
+            type: float
+            range: 0~1
+            isEval: True
+            caching: False
+            
+            outOrder: 
+                - LR_X16
+                - EO_X16
+            augmentation:   
+                - toGrayscale()
+                - resize(scaleFactor=0.5, interpolation=lanczos, applyIndices=[1], labelIndex=1)
+                - toTensor() 
+                # - toGrayscale(applyKeys=[LR_X16])
+                # - resize(scaleFactor=0.5, interpolation=lanczos, applyKeys=[EO_X16], labelKey=EO_X16)
+                # - toTensor() 
+
+
+
+            
+#################################################################################
+#                                     TRAIN                                     #
+#################################################################################
+train:
+
+    step:
+        maxEpoch: 180000
+        validationStep: 20
+        archiveStep: 20
+        earlyStopStep: -1
+
+    method:
+        mixedPrecision: False
+
+    dataLoaderNumWorkers: 0
+
+
+
+
+#################################################################################
+#                                   INFERENCE                                   #
+#################################################################################
+inference:
+
+    
+
+#################################################################################
+#                                     SAVE                                      #
+#################################################################################
+save:
+
+    font:
+        path: "/backbone/misc/LatinModernRomanItalic.otf"
+
+    maxSaveImageNumberTrain: 64
+    remainOnlyLastSavedResult: False
+
+
+
+
+
+#################################################################################
+#                                     GENERAL                                   #
+#################################################################################
+general:
+    #maxMemoryCachingSizeGB: 64
+    #maxVRAMCachingSizeGB: 8 # will be devide by # of GPU
+    GPUNum: 1 # comma-separated
+
+
+
+
+
+
+#################################################################################
+#                               *** THANK YOU ***                               #
+#################################################################################

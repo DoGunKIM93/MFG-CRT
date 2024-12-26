@@ -1,0 +1,15 @@
+#################################################################################
+#                          *** datasetConfig.yaml ***                           #
+#################################################################################
+
+
+
+Thermal_dataset:
+    origin: GTISR_dataset
+    classes: 
+        - mode
+        - class
+    preprocessings: # Must be list
+        - Pass()
+
+
